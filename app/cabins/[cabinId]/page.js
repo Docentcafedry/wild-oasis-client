@@ -4,13 +4,16 @@ import TextExpander from "@/app/_components/TextExpander";
 import Image from "next/image";
 import DateSelector from "@/app/_components/DateSelector";
 import ReservationForm from "@/app/_components/ReservationForm";
-import { getSettings } from "@/app/_lib/data-service";
+import { getSettings, getBookedDatesByCabinId } from "@/app/_lib/data-service";
+import { Suspense } from "react";
+import Spinner from "@/app/_components/Spinner";
 
 // PLACEHOLDER DATA
 
 export async function generateMetadata({ params }) {
   const { cabinId } = await params;
   const cabin = await getCabin(cabinId);
+
   return {
     title: cabin.name,
   };
@@ -19,6 +22,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { cabinId } = await params;
   const cabin = await getCabin(cabinId);
+  const bookedDays = await getBookedDatesByCabinId(cabinId);
   const { minBookingLength, maxBookingLength } = await getSettings();
   const { id, name, maxCapacity, regularPrice, discount, avatar, description } =
     cabin;
@@ -69,12 +73,15 @@ export default async function Page({ params }) {
         </h2>
       </div>
       <div className="grid grid-cols-[60%_40%]">
-        <DateSelector
-          minBookingLength={minBookingLength}
-          maxBookingLength={maxBookingLength}
-          cabin={cabin}
-        ></DateSelector>
-        <ReservationForm></ReservationForm>
+        <Suspense fallback={<Spinner></Spinner>}>
+          <DateSelector
+            minBookingLength={minBookingLength}
+            maxBookingLength={maxBookingLength}
+            cabin={cabin}
+            bookedDays={bookedDays}
+          ></DateSelector>
+          <ReservationForm></ReservationForm>
+        </Suspense>
       </div>
     </div>
   );

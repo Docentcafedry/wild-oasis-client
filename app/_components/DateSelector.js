@@ -1,9 +1,9 @@
 "use client";
-import { isWithinInterval } from "date-fns";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import { isWithinInterval, eachDayOfInterval } from "date-fns";
+import { DayPicker, getDefaultClassNames } from "react-day-picker";
 import { useReservationContext } from "../contexts/ReservationContext";
-import classNames from "react-day-picker/style.module.css";
+import "react-day-picker/style.css";
+
 function isAlreadyBooked(range, datesArr) {
   return (
     range.from &&
@@ -14,18 +14,36 @@ function isAlreadyBooked(range, datesArr) {
   );
 }
 
-function DateSelector({ cabin, minBookingLength, maxBookingLength }) {
+function DateSelector({
+  cabin,
+  minBookingLength,
+  maxBookingLength,
+  bookedDays,
+}) {
   // CHANGE
-  const { regularPrice, discount, numNights, cabinPrice } = cabin;
+  const { regularPrice, discount, numNights } = cabin;
   const range = { from: null, to: null };
+  const defaultClassNames = getDefaultClassNames();
 
   const { reservation, setReservation } = useReservationContext();
 
+  const numNightsReservation = eachDayOfInterval({
+    start: reservation.from,
+    end: reservation.to,
+  }).length;
   return (
     <div className="flex flex-col justify-between">
       <DayPicker
         animate
-        className="place-self-center"
+        classNames={{
+          selected: `text-primary-200`,
+          root: `${defaultClassNames.root} shadow-lg p-3`,
+          day: `group w-5 h-5 rounded-full ${defaultClassNames.day} `,
+          caption_label: `text-primary-200`,
+          range_end: `bg-accent-700`,
+          range_start: `bg-accent-700`,
+          range_middle: `bg-accent-700`,
+        }}
         mode="range"
         min={minBookingLength + 1}
         max={maxBookingLength}
@@ -36,6 +54,19 @@ function DateSelector({ cabin, minBookingLength, maxBookingLength }) {
         numberOfMonths={2}
         selected={reservation}
         onSelect={(date) => setReservation(date)}
+        disabled={bookedDays}
+        components={{
+          /* Custom Button */
+          DayButton: (props) => {
+            const { day, ...buttonProps } = props;
+            return (
+              <button
+                {...buttonProps}
+                className="bg-primary-900 w-8 h-6 m-1 group-aria-selected:bg-accent-700 rounded-full"
+              />
+            );
+          },
+        }}
       />
 
       <div className="flex items-center justify-between px-8 bg-accent-500 text-primary-800 h-[72px]">
@@ -53,23 +84,26 @@ function DateSelector({ cabin, minBookingLength, maxBookingLength }) {
             )}
             <span className="">/night</span>
           </p>
-          {numNights ? (
+          {numNightsReservation ? (
             <>
               <p className="bg-accent-600 px-3 py-2 text-2xl">
                 <span>&times;</span> <span>{numNights}</span>
               </p>
-              <p>
-                <span className="text-lg font-bold uppercase">Total</span>{" "}
-                <span className="text-2xl font-semibold">${cabinPrice}</span>
+              <p className="flex justify-between gap-2 items-center">
+                <span className="text-lg font-bold uppercase">Total</span>
+
+                <span className="text-2xl font-semibold">
+                  ${regularPrice * numNightsReservation}
+                </span>
               </p>
             </>
           ) : null}
         </div>
 
-        {range.from || range.to ? (
+        {reservation.from || reservation.to ? (
           <button
             className="border border-primary-800 py-2 px-4 text-sm font-semibold"
-            onClick={() => resetRange()}
+            onClick={() => setReservation({ from: undefined, to: undefined })}
           >
             Clear
           </button>
