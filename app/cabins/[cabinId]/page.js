@@ -7,7 +7,8 @@ import ReservationForm from "@/app/_components/ReservationForm";
 import { getSettings, getBookedDatesByCabinId } from "@/app/_lib/data-service";
 import { Suspense } from "react";
 import Spinner from "@/app/_components/Spinner";
-
+import LoginMessage from "@/app/_components/LoginMessage";
+import { auth } from "@/app/_lib/auth";
 // PLACEHOLDER DATA
 
 export async function generateMetadata({ params }) {
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { cabinId } = await params;
   const cabin = await getCabin(cabinId);
+  const session = await auth();
   const bookedDays = await getBookedDatesByCabinId(cabinId);
   const { minBookingLength, maxBookingLength } = await getSettings();
   const { id, name, maxCapacity, regularPrice, discount, avatar, description } =
@@ -80,7 +82,11 @@ export default async function Page({ params }) {
             cabin={cabin}
             bookedDays={bookedDays}
           ></DateSelector>
-          <ReservationForm></ReservationForm>
+          {session?.user ? (
+            <ReservationForm></ReservationForm>
+          ) : (
+            <LoginMessage></LoginMessage>
+          )}
         </Suspense>
       </div>
     </div>
