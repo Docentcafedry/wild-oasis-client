@@ -40,3 +40,55 @@ export async function updateProfile(formData) {
 
   revalidatePath("/account/profile");
 }
+
+export async function deleteBooking(bookingId) {
+  const session = await auth();
+  if (!session) {
+    throw new Error("You are not authenticated");
+  }
+
+  const {
+    data: booking,
+    error,
+    count,
+  } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
+
+  if (error) {
+    throw new Error("Booking could not get loaded");
+  }
+
+  if (booking.guestId != session?.user?.guestId) {
+    throw new Error("You are not authorzed to delete this booking!");
+  }
+
+  const { data, error: errorDelete } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", bookingId);
+
+  if (errorDelete) {
+    throw new Error("Booking could not be deleted");
+  }
+  revalidatePath("/account/reservations");
+}
+
+export async function updateBooking(formData) {
+  const bookingId = formData.get("bookingId");
+  const observations = formData.get("observations");
+  const numGuests = formData.get("numGuests");
+
+  const updatedData = { observations, numGuests };
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .update(updatedData)
+    .eq("id", bookingId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    throw new Error("Booking could not be updated");
+  }
+  revalidatePath("/account/reservations");
+}

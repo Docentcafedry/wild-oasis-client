@@ -68,7 +68,7 @@ function ReservationCard({ booking }) {
       </div>
 
       <div className="flex flex-col border-l border-primary-800 w-[100px]">
-        {status === "unconfirmed" && (
+        {status === "unconfirmed" ? (
           <>
             <Link
               href={`/account/reservations/edit/${id}`}
@@ -79,6 +79,8 @@ function ReservationCard({ booking }) {
             </Link>
             <DeleteReservation bookingId={id} />
           </>
+        ) : (
+          <></>
         )}
       </div>
     </div>
