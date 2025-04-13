@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import Spinner from "@/app/_components/Spinner";
 import LoginMessage from "@/app/_components/LoginMessage";
 import { auth } from "@/app/_lib/auth";
+import ReservationActions from "@/app/_components/ReservationActions";
 // PLACEHOLDER DATA
 
 export async function generateMetadata({ params }) {
@@ -76,17 +77,33 @@ export default async function Page({ params }) {
       </div>
       <div className="grid grid-cols-[60%_40%]">
         <Suspense fallback={<Spinner></Spinner>}>
-          <DateSelector
+          {/* <DateSelector
             minBookingLength={minBookingLength}
             maxBookingLength={maxBookingLength}
             cabin={cabin}
             bookedDays={bookedDays}
           ></DateSelector>
           {session?.user ? (
-            <ReservationForm></ReservationForm>
+            <ReservationForm
+              user={session?.user}
+              maxCapacity={maxCapacity}
+              cabinPrice={regularPrice}
+              cabinId={cabinId}
+            ></ReservationForm>
           ) : (
             <LoginMessage></LoginMessage>
-          )}
+          )} */}
+          <ReservationActions
+            user={session?.user}
+            minBookingLength={minBookingLength}
+            maxBookingLength={maxBookingLength}
+            cabin={cabin}
+            bookedDays={bookedDays}
+            cabinPrice={regularPrice}
+            cabinId={cabinId}
+            regularPrice={regularPrice}
+            maxCapacity={maxCapacity}
+          ></ReservationActions>
         </Suspense>
       </div>
     </div>

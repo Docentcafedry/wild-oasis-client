@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { signIn as signInFunc, signOut as signOutFunc } from "./_lib/auth";
 import supabase from "./_lib/supabase";
+import { da } from "date-fns/locale";
 
 export async function signIn() {
   await signInFunc("google", { redirectTo: "/account/profile" });
@@ -91,4 +92,26 @@ export async function updateBooking(formData) {
     throw new Error("Booking could not be updated");
   }
   revalidatePath("/account/reservations");
+}
+
+export async function createBooking(initialData, formData) {
+  const creationData = {
+    ...initialData,
+    numGuests: formData.get("numGuests"),
+    observations: formData.get("observations"),
+  };
+
+  const { error } = await supabase
+    .from("bookings")
+    .insert([creationData])
+    // So that the newly created object gets returned!
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    throw new Error("Booking could not be created");
+  }
+
+  revalidatePath(`/cabins/${creationData.cabinId}`);
 }

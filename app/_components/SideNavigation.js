@@ -8,7 +8,7 @@ import SignOutButton from "./SignOutButton";
 const navLinks = [
   {
     name: "Home",
-    href: "/account",
+    href: "/",
     icon: <HomeIcon className="h-5 w-5 text-primary-600" />,
   },
   {
@@ -39,7 +39,7 @@ function SideNavigation() {
           </li>
         ))}
 
-        <li className="mt-auto">
+        <li>
           <SignOutButton />
         </li>
       </ul>

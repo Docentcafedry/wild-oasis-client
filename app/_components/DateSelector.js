@@ -1,15 +1,20 @@
 "use client";
-import { isWithinInterval, eachDayOfInterval } from "date-fns";
+import {
+  isWithinInterval,
+  eachDayOfInterval,
+  isPast,
+  isSameDay,
+} from "date-fns";
 import { DayPicker, getDefaultClassNames } from "react-day-picker";
 import { useReservationContext } from "../contexts/ReservationContext";
 import "react-day-picker/style.css";
 
 function isAlreadyBooked(range, datesArr) {
   return (
-    range.from &&
-    range.to &&
+    range?.from &&
+    range?.to &&
     datesArr.some((date) =>
-      isWithinInterval(date, { start: range.from, end: range.to })
+      isWithinInterval(date, { start: range?.from, end: range?.to })
     )
   );
 }
@@ -28,15 +33,19 @@ function DateSelector({
   const { reservation, setReservation } = useReservationContext();
 
   const numNightsReservation = eachDayOfInterval({
-    start: reservation.from,
-    end: reservation.to,
+    start: reservation?.from,
+    end: reservation?.to,
   }).length;
+
+  console.log(reservation);
+
   return (
     <div className="flex flex-col justify-between">
       <DayPicker
         animate
         classNames={{
           selected: `text-primary-200`,
+          disabled: `text-primary-800`,
           root: `${defaultClassNames.root} shadow-lg p-3`,
           day: `group w-5 h-5 rounded-full ${defaultClassNames.day} `,
           caption_label: `text-primary-200`,
@@ -53,8 +62,16 @@ function DateSelector({
         captionLayout="dropdown"
         numberOfMonths={2}
         selected={reservation}
-        onSelect={(date) => setReservation(date)}
-        disabled={bookedDays}
+        onSelect={(date) => {
+          if (isAlreadyBooked(date, bookedDays)) {
+            setReservation({ from: undefined, to: undefined });
+          } else {
+            setReservation(date);
+          }
+        }}
+        disabled={(curDate) =>
+          isPast(curDate) || bookedDays.some((day) => isSameDay(day, curDate))
+        }
         components={{
           /* Custom Button */
           DayButton: (props) => {

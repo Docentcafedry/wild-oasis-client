@@ -1,5 +1,33 @@
-function ReservationForm({ maxCapacity, user, guests }) {
+import { differenceInDays } from "date-fns";
+import { createBooking } from "../actions";
+import StatusButton from "./StatusButton";
+
+function ReservationForm({
+  maxCapacity,
+  user,
+  guests,
+  cabinPrice,
+  cabinId,
+  reservation,
+  setReservation,
+}) {
   // CHANGE
+
+  const dataForCreation = {
+    startDate: reservation.from,
+    endDate: reservation.to,
+    numNights: Number(differenceInDays(reservation.to, reservation.from)),
+    cabinPrice,
+    status: "unconfirmed",
+    isPaid: false,
+    cabinId: Number(cabinId),
+    guestId: Number(user?.guestId),
+    hasBreakfast: false,
+    extraPrice: 0,
+    totalPrice: cabinPrice + 0,
+  };
+
+  const actionWithAdditionalData = createBooking.bind(null, dataForCreation);
 
   return (
     <div className="scale-[1]">
@@ -18,7 +46,13 @@ function ReservationForm({ maxCapacity, user, guests }) {
         </div>
       </div>
 
-      <form className="bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col">
+      <form
+        action={async (formData) => {
+          await actionWithAdditionalData(formData);
+          setReservation({ from: undefined, to: undefined });
+        }}
+        className="bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col"
+      >
         <div className="space-y-2">
           <label htmlFor="numGuests">How many guests?</label>
           <select
@@ -53,9 +87,7 @@ function ReservationForm({ maxCapacity, user, guests }) {
         <div className="flex justify-end items-center gap-6">
           <p className="text-primary-300 text-base">Start by selecting dates</p>
 
-          <button className="bg-accent-500 px-6 py-3 text-primary-800 font-semibold hover:bg-accent-600 transition-all disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300">
-            Reserve now
-          </button>
+          <StatusButton>Reserve Now</StatusButton>
         </div>
       </form>
     </div>
